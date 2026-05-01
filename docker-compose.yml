@@ -1,0 +1,35 @@
+services:
+  literary-lions:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: literary-lions-forum
+    ports:
+      - "8080:8080"
+    volumes:
+      - forum_data:/app/data
+      - forum_uploads:/app/uploads
+    environment:
+      - PORT=8080
+      - DB_PATH=/app/data/forum.db
+    restart: unless-stopped
+    labels:
+      - "literary-lions.service=forum"
+      - "literary-lions.environment=production"
+    healthcheck:
+      # Updated to use dedicated health endpoint
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  forum_data:
+    driver: local
+    labels:
+      - "literary-lions.volume=forum-data"
+  forum_uploads:
+    driver: local
+    labels:
+      - "literary-lions.volume=forum-uploads"
