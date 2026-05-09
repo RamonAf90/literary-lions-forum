@@ -1,0 +1,61 @@
+{{define "create-post-content"}}
+<div class="card" style="max-width: 800px; margin: 2rem auto;">
+    <h2 class="text-center mb-3"> Share Your Literary post</h2>
+    <p class="text-center" style="color: #b8860b; margin-bottom: 2rem;">Ready to share your thoughts with the club? Let your literary voice be heard!</p>
+    
+    {{if .Error}}
+    <div class="error">🚫 {{.Error}}</div>
+    {{end}}
+    
+    <form method="POST" action="/create-post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="title">📚 What's on your literary mind? <span style="color: #dc3545;">*</span></label>
+            <input type="text" id="title" name="title" required placeholder="Share what's stirring your book-loving soul...">
+        </div>
+        
+        <div class="form-group">
+            <label for="category">🏷️ Choose Your category <span style="color: #dc3545;">*</span></label>
+            <select id="category" name="category" required>
+                <option value="">🌍 Select a literary realm...</option>
+                {{range .Categories}}
+                <option value="{{.ID}}">{{.Name}} - {{.Description}}</option>
+                {{end}}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="image">📸 Add a Visual post (Optional)</label>
+            <input type="file" id="image" name="image" accept="image/*" style="padding: 0.8rem; background: rgba(255,255,255,0.9);">
+            <small style="color: #b8860b; font-style: italic; display: block; margin-top: 0.5rem;">
+                💡 Share book covers, reading nooks, literary quotes, or any image that enhances your post!<br>
+                📏 Maximum file size: 10MB<br>
+                🖼️ Supported formats: JPG, PNG, GIF, WebP<br>
+            </small>
+        </div>
+        
+        <div class="form-group">
+            <label for="content">✍️ Let your literary voice post <span style="color: #dc3545;">*</span></label>
+            <textarea id="content" name="content" rows="12" required placeholder="Share your thoughts, insights, questions, or literary adventures with the club... 
+
+Whether it's a book review that moved you, a question about a favorite author, recommendations for fellow lions, or just your passionate thoughts about literature - this is your space to post!
+
+📖 What stories have captured your heart?
+🤔 What literary questions keep you up at night?
+⭐ What books deserve more recognition?
+
+The club is listening... "></textarea>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button type="submit" class="btn btn-success"> Release Your post</button>
+            <a href="/" class="btn" style="background: #6c757d; color: white;"> Return to the club</a>
+        </div>
+    </form>
+    
+    <div class="text-center mt-3" style="padding-top: 1rem; border-top: 1px solid rgba(212, 175, 55, 0.3);">
+        <small style="color: #b8860b; font-style: italic;">💡 Remember: Great discussions start with thoughtful posts. Share what truly moves you!</small>
+    </div>
+</div>
+
+
+{{end}}

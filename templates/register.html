@@ -1,0 +1,40 @@
+{{define "register-content"}}
+<div class="card" style="max-width: 500px; margin: 2rem auto;">
+    <h2 class="text-center mb-3"> Join the Literary club</h2>
+    <p class="text-center" style="color: #b8860b; margin-bottom: 2rem;">Ready to share your literary post? Join our community of book lovers!</p>
+    
+    {{if .Error}}
+    <div class="error">🚫 {{.Error}}</div>
+    {{end}}
+    
+    <form method="POST" action="/register">
+        <div class="form-group">
+            <label for="email">📧 Email Address</label>
+            <input type="email" id="email" name="email" required placeholder="your.email@bookclub.com">
+            <small style="color: #b8860b;">🔒 This will be your unique identifier in the club (must be unique).</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="username"> Username</label>
+            <input type="text" id="username" name="username" required placeholder="BookLionHeart">
+            <small style="color: #b8860b;">👑 Choose your literary lion name (must be unique and will be displayed on posts).</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">🔐 Password</label>
+            <input type="password" id="password" name="password" required placeholder="Create a powerful post">
+            <small style="color: #b8860b;">🛡️ Choose a strong password to protect your literary den.</small>
+        </div>
+        
+        <button type="submit" class="btn btn-success" style="width: 100%;"> Join the Literary club</button>
+    </form>
+    
+    <div class="text-center mt-3">
+        <p style="color: #b8860b;">Already part of the club? <a href="/login" style="color: #d4af37; font-weight: 600;"> Enter the club</a></p>
+    </div>
+    
+    <div class="text-center mt-3" style="padding-top: 1rem; border-top: 1px solid rgba(212, 175, 55, 0.3);">
+        <small style="color: #b8860b; font-style: italic;">🏛️ Where stories come alive </small>
+    </div>
+</div>
+{{end}}

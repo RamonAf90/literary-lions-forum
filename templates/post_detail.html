@@ -1,0 +1,149 @@
+{{define "post-detail-content"}}
+<!-- Success/Delete messages -->
+{{if .CommentDeleted}}
+<div class="success">
+    ✅ Comment successfully deleted!
+</div>
+{{end}}
+
+<!-- Main Post -->
+<div class="card">
+    <h1 style="margin-bottom: 1rem; color: #b8860b;">{{.Title}}</h1>
+    
+    <div class="post-meta">
+        <!-- UPDATED: Changed from /profile/{{.UserID}} to /members/{{.Username}} -->
+        <span> By <a href="/members/{{.Username}}" style="color: #d4af37; font-weight: 600; text-decoration: none;">{{.Username}}</a></span>
+        <span> {{.CreatedAt.Format "Jan 2, 2006 at 3:04 PM"}}</span>
+        {{if .Category}}
+            <span class="category-tag">
+                {{if eq .Category.Name "General Discussion"}}{{else if eq .Category.Name "Book Reviews"}}{{else if eq .Category.Name "Author Spotlights"}}{{else if eq .Category.Name "Reading Recommendations"}}{{else if eq .Category.Name "Book Club Events"}}{{else if eq .Category.Name "Genre Discussions"}}{{else}}{{end}} {{.Category.Name}}
+            </span>
+        {{end}}
+    </div>
+    
+    <div class="post-content">
+        {{.Content}}
+    </div>
+    
+    {{if .ImageFilename}}
+    <div style="margin: 1.5rem 0;">
+        <a href="/image-modal?image=uploads/{{.ImageFilename}}" style="display: inline-block;">
+            <img src="/uploads/{{.ImageFilename}}" alt="{{.ImageOriginalName}}" 
+                 style="max-width: 100%; height: auto; border-radius: 15px; cursor: pointer; box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3);" 
+                 title="Click to view full size">
+        </a>
+        <p style="text-align: center; margin-top: 0.5rem; color: #b8860b; font-style: italic; font-size: 0.9rem;">
+            📸 {{.ImageOriginalName}} (click to enlarge)
+        </p>
+    </div>
+    {{end}}
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(212, 175, 55, 0.3);">
+        <div class="like-buttons">
+            {{if .User}}
+                <form method="POST" action="/like-post" style="display: inline;">
+                    <input type="hidden" name="post_id" value="{{.ID}}">
+                    <input type="hidden" name="action" value="{{if .UserLiked}}remove{{else}}like{{end}}">
+                    <button type="submit" class="like-button {{if .UserLiked}}liked{{end}}">
+                        👍 {{.Likes}}
+                    </button>
+                </form>
+                <form method="POST" action="/like-post" style="display: inline;">
+                    <input type="hidden" name="post_id" value="{{.ID}}">
+                    <input type="hidden" name="action" value="{{if .UserDisliked}}remove{{else}}dislike{{end}}">
+                    <button type="submit" class="like-button {{if .UserDisliked}}disliked{{end}}">
+                        👎 {{.Dislikes}}
+                    </button>
+                </form>
+            {{else}}
+                <span style="color: #b8860b; font-size: 1.1rem;">👍 {{.Likes}} likes • 👎 {{.Dislikes}} dislikes</span>
+            {{end}}
+        </div>
+        
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <a href="/" class="btn btn-sm"> Back to Home</a>
+            {{if and .User (eq .User.ID .UserID)}}
+                <a href="/delete-post-confirm?id={{.ID}}" class="btn btn-danger btn-sm">🗑️ Delete Post</a>
+            {{end}}
+        </div>
+    </div>
+</div>
+
+<!-- Comments Section -->
+<div class="card">
+    <h3 style="color: #b8860b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+        💬 Comments ({{len .Comments}})
+    </h3>
+    
+    <!-- Add Comment Form -->
+    {{if .User}}
+    <div style="background: rgba(212, 175, 55, 0.1); padding: 1.5rem; border-radius: 15px; margin-bottom: 2rem; border: 1px solid rgba(212, 175, 55, 0.2);">
+        <h4 style="color: #b8860b; margin-bottom: 1rem;">✍️ Share your thoughts</h4>
+        <form method="POST" action="/create-comment">
+            <input type="hidden" name="post_id" value="{{.ID}}">
+            <div class="form-group">
+                <textarea name="content" rows="4" placeholder="Add your literary insight..." required 
+                         style="resize: vertical; min-height: 100px;"></textarea>
+            </div>
+            <button type="submit" class="btn btn-success"> Post Comment</button>
+        </form>
+    </div>
+    {{else}}
+    <div style="background: rgba(212, 175, 55, 0.1); padding: 1.5rem; border-radius: 15px; margin-bottom: 2rem; border: 1px solid rgba(212, 175, 55, 0.2); text-align: center;">
+        <p style="color: #b8860b; margin-bottom: 1rem;"> Join the discussion!</p>
+        <a href="/login" class="btn btn-primary"> Login for Comment</a>
+        <a href="/register" class="btn btn-success" style="margin-left: 1rem;"> Join the club</a>
+    </div>
+    {{end}}
+    
+    <!-- Comments List -->
+    {{if not .Comments}}
+    <div style="text-align: center; color: #b8860b; padding: 3rem; background: rgba(255,248,220,0.3); border-radius: 15px;">
+        <img src="/static/logo.png" alt="Literary Lions Logo" class="logo-img" />
+        <p style="font-size: 1.1rem; margin-bottom: 1rem;">No comments yet...</p>
+        <p>Be the first to share your thoughts on this post!</p>
+    </div>
+    {{else}}
+        {{range .Comments}}
+        <div style="border-left: 4px solid #d4af37; background: rgba(255,248,220,0.2); padding: 1.5rem; margin-bottom: 1.5rem; border-radius: 0 15px 15px 0; position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <!-- UPDATED: Changed from /profile/{{.UserID}} to /members/{{.Username}} -->
+                    <span style="font-weight: 600; color: #b8860b;">
+                        💬 <a href="/members/{{.Username}}" style="color: #d4af37; text-decoration: none;">{{.Username}}</a>
+                    </span>
+                    <span style="color: #b8860b; font-size: 0.9rem;">{{.CreatedAt.Format "Jan 2, 2006 at 3:04 PM"}}</span>
+                </div>
+                
+                {{if and $.User (eq $.User.ID .UserID)}}
+                <a href="/delete-comment-confirm?id={{.ID}}" class="btn btn-danger btn-sm" style="font-size: 0.8rem; padding: 0.3rem 0.6rem;">🗑️</a>
+                {{end}}
+            </div>
+            
+            <div style="line-height: 1.7; color: #2c1810; white-space: pre-wrap; margin-bottom: 1rem;">{{.Content}}</div>
+            
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                {{if $.User}}
+                    <form method="POST" action="/like-comment" style="display: inline;">
+                        <input type="hidden" name="comment_id" value="{{.ID}}">
+                        <input type="hidden" name="action" value="{{if .UserLiked}}remove{{else}}like{{end}}">
+                        <button type="submit" class="like-button {{if .UserLiked}}liked{{end}}" style="font-size: 0.9rem;">
+                            👍 {{.Likes}}
+                        </button>
+                    </form>
+                    <form method="POST" action="/like-comment" style="display: inline;">
+                        <input type="hidden" name="comment_id" value="{{.ID}}">
+                        <input type="hidden" name="action" value="{{if .UserDisliked}}remove{{else}}dislike{{end}}">
+                        <button type="submit" class="like-button {{if .UserDisliked}}disliked{{end}}" style="font-size: 0.9rem;">
+                            👎 {{.Dislikes}}
+                        </button>
+                    </form>
+                {{else}}
+                    <span style="color: #b8860b; font-size: 0.9rem;">👍 {{.Likes}} • 👎 {{.Dislikes}}</span>
+                {{end}}
+            </div>
+        </div>
+        {{end}}
+    {{end}}
+</div>
+{{end}}

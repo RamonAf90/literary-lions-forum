@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{if eq .Page "login"}}Login - Literary Lions Forum{{else if eq .Page "register"}}Register - Literary Lions Forum{{else if eq .Page "create-post"}}Create Post - Literary Lions Forum{{else if eq .Page "post-detail"}}{{.Title}} - Literary Lions Forum{{else if eq .Page "home"}}Literary Lions Forum - Home{{else if eq .Page "search"}}Search - Literary Lions Forum{{else if eq .Page "profile"}}Profile - Literary Lions Forum{{else if eq .Page "members"}}Members - Literary Lions Forum{{else}}Literary Lions Forum{{end}}</title>
+    <link rel="stylesheet" href="/static/style.css"> 
+</head>
+<body>
+    <div class="layout">
+        <header class="header">
+            <div class="container">
+                <div class="header-content">
+                    <a href="/" class="logo">
+                        <img src="/static/logo.png" alt="Literary Lions Logo" class="logo-img" />
+                        <div class="logo-text">
+                            <span class="logo-main">Literary Lions</span>
+                            <span class="logo-sub">Speak Through Stories</span>
+                        </div>
+                    </a>
+                    <nav>
+                        <ul>
+                            <li><a href="/"> Home</a></li>
+                            <li><a href="/search"> Search</a></li>
+                            {{if .User}}
+                                        <li><a href="/members/"> Members</a></li>
+                            <li><a href="/create-post"> Create</a></li>
+                            <li><a href="/members/{{.User.Username}}"> Profile</a></li>
+                                <li><a href="/logout"> Logout</a></li>
+                            {{else}}
+                                <li><a href="/login"> Login</a></li>
+                                <li><a href="/register"> Register</a></li>
+                            {{end}}
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </header>
+        
+        <main>
+        <div class="container">
+            {{if eq .Page "login"}}
+                {{template "login-content" .}}
+            {{else if eq .Page "register"}}
+                {{template "register-content" .}}
+            {{else if eq .Page "create-post"}}
+                {{template "create-post-content" .}}
+            {{else if eq .Page "post-detail"}}
+                {{template "post-detail-content" .}}
+            {{else if eq .Page "search"}}
+                {{template "search-content" .}}
+            {{else if eq .Page "members"}}
+                {{template "members-content" .}}
+            {{else if eq .Page "profile"}}
+                {{template "profile-content" .}}
+            {{else if eq .Page "image-modal"}}
+                {{template "image-modal-content" .}}
+            {{else if eq .Page "delete-confirm"}}
+                {{template "delete-confirm-content" .}}
+            {{else}}
+                {{template "home-content" .}}
+            {{end}}
+        </div>
+        </main>
+        
+        <footer class="footer">
+            <div class="container">
+                <p>&copy; 2025 Literary Lions Forum. Where Speak Through Stories.</p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
+
+{{define "home-content"}}
+<!-- Filters section -->
+<div class="filters">
+    <h3>🔍 Filter Posts</h3>
+    <div class="filter-links">
+        <a href="/" {{if eq .Filter.Category ""}}class="active"{{end}}> All Posts</a>
+        {{range .Categories}}
+            <a href="/?category={{.ID}}" {{if eq $.Filter.Category (printf "%d" .ID)}}class="active"{{end}}>
+                {{if eq .Name "General Discussion"}}{{else if eq .Name "Book Reviews"}}{{else if eq .Name "Author Spotlights"}}{{else if eq .Name "Reading Recommendations"}}{{else if eq .Name "Book Club Events"}}{{else if eq .Name "Genre Discussions"}}{{else}}{{end}} {{.Name}}
+            </a>
+        {{end}}
+        {{if .User}}
+            <a href="/?user=me" {{if eq .Filter.User "me"}}class="active"{{end}}> My Posts</a>
+            <a href="/?liked=me" {{if eq .Filter.Liked "me"}}class="active"{{end}}> My Liked Posts</a>
+        {{end}}
+    </div>
+</div>
+
+<!-- Success/Delete messages -->
+{{if .Filter.Deleted}}
+<div class="success">
+    ✅ Content successfully deleted!
+</div>
+{{end}}
+
+<!-- Posts listing -->
+{{if not .Posts}}
+<div class="card text-center" style="color: #000000;">
+    <div style="font-size: 4rem; margin-bottom: 1rem;">📚</div>
+    <h2 style="margin-bottom: 1rem;">No posts found</h2>
+    <p style="margin-bottom: 2rem;">
+        {{if .Filter.Category}}
+            No posts in this category yet.
+        {{else if .Filter.User}}
+            You haven't created any posts yet.
+        {{else if .Filter.Liked}}
+            You haven't liked any posts yet.
+        {{else}}
+            The literary club is just getting started!
+        {{end}}
+    </p>
+    {{if .User}}
+        <a href="/create-post" class="btn btn-success"> Create the First Post</a>
+    {{else}}
+        <a href="/register" class="btn btn-primary"> Join the club</a>
+    {{end}}
+</div>
+{{else}}
+    {{range .Posts}}
+    <div class="card">
+        <h2 style="margin-bottom: 1rem; color: #b8860b;">
+            <a href="/post/{{.ID}}" style="color: #b8860b; text-decoration: none;">{{.Title}}</a>
+        </h2>
+        
+        <div class="post-meta">
+            <span> By <a href="/members/{{.Username}}" style="color: #d4af37; font-weight: 600; text-decoration: none;">{{.Username}}</a></span>
+            <span> {{.CreatedAt.Format "Jan 2, 2006 at 3:04 PM"}}</span>
+            {{if .Category}}
+                <span class="category-tag">
+                    {{if eq .Category.Name "General Discussion"}}{{else if eq .Category.Name "Book Reviews"}}{{else if eq .Category.Name "Author Spotlights"}}{{else if eq .Category.Name "Reading Recommendations"}}{{else if eq .Category.Name "Book Club Events"}}{{else if eq .Category.Name "Genre Discussions"}}{{else}}{{end}} {{.Category.Name}}
+                </span>
+            {{end}}
+        </div>
+        
+        <div class="post-content">
+            {{if gt (len .Content) 300}}
+                {{slice .Content 0 300}}...
+                <a href="/post/{{.ID}}" style="color: #d4af37; font-weight: 600;">Read more</a>
+            {{else}}
+                {{.Content}}
+            {{end}}
+        </div>
+        
+        {{if .ImageFilename}}
+        <div style="margin: 1rem 0;">
+            <a href="/image-modal?image=uploads/{{.ImageFilename}}" style="display: inline-block;">
+                <img src="/uploads/{{.ImageFilename}}" alt="{{.ImageOriginalName}}" style="max-width: 100%; height: auto; border-radius: 10px; cursor: pointer;">
+            </a>
+        </div>
+        {{end}}
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+            <div class="like-buttons">
+                {{if $.User}}
+                    <form method="POST" action="/like-post" style="display: inline;">
+                        <input type="hidden" name="post_id" value="{{.ID}}">
+                        <input type="hidden" name="action" value="{{if .UserLiked}}remove{{else}}like{{end}}">
+                        <button type="submit" class="like-button {{if .UserLiked}}liked{{end}}">
+                            👍 {{.Likes}}
+                        </button>
+                    </form>
+                    <form method="POST" action="/like-post" style="display: inline;">
+                        <input type="hidden" name="post_id" value="{{.ID}}">
+                        <input type="hidden" name="action" value="{{if .UserDisliked}}remove{{else}}dislike{{end}}">
+                        <button type="submit" class="like-button {{if .UserDisliked}}disliked{{end}}">
+                            👎 {{.Dislikes}}
+                        </button>
+                    </form>
+                {{else}}
+                    <span style="color: #b8860b;">👍 {{.Likes}} likes • 👎 {{.Dislikes}} dislikes</span>
+                {{end}}
+            </div>
+            
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <a href="/post/{{.ID}}" class="btn btn-sm">💬 View Comments</a>
+                {{if and $.User (eq $.User.ID .UserID)}}
+                    <a href="/delete-post-confirm?id={{.ID}}" class="btn btn-danger btn-sm">🗑️ Delete</a>
+                {{end}}
+            </div>
+        </div>
+    </div>
+    {{end}}
+{{end}}
+{{end}}
+
+{{define "post-detail-content"}}
+<!-- Success/Delete messages -->
+{{if .CommentDeleted}}
+<div class="success">
+    ✅ Comment successfully deleted!
+</div>
+{{end}}
+
+<!-- Main Post -->
+<div class="card">
+    <h1 style="margin-bottom: 1rem; color: #b8860b;">{{.Title}}</h1>
+    
+    <div class="post-meta">
+        <span> By <a href="/members/{{.Username}}" style="color: #d4af37; font-weight: 600; text-decoration: none;">{{.Username}}</a></span>
+        <span> {{.CreatedAt.Format "Jan 2, 2006 at 3:04 PM"}}</span>
+        {{if .Category}}
+            <span class="category-tag">
+                {{if eq .Category.Name "General Discussion"}}{{else if eq .Category.Name "Book Reviews"}}{{else if eq .Category.Name "Author Spotlights"}}{{else if eq .Category.Name "Reading Recommendations"}}{{else if eq .Category.Name "Book Club Events"}}{{else if eq .Category.Name "Genre Discussions"}}{{else}}{{end}} {{.Category.Name}}
+            </span>
+        {{end}}
+    </div>
+    
+    <div class="post-content">
+        {{.Content}}
+    </div>
+    
+   {{if .ImageFilename}}
+    <div style="margin: 1.5rem 0;">
+        <a href="/image-modal?image=uploads/{{.ImageFilename}}" target="_blank" style="display: inline-block;">
+            
+               <img src="/uploads/{{.ImageFilename}}" alt="{{.ImageOriginalName}}" 
+                 style="max-width: 100%; height: auto; border-radius: 15px; cursor: pointer; box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3);" 
+                 title="Click to view full size">
+        </a>
+        <p style="text-align: center; margin-top: 0.5rem; color: #b8860b; font-style: italic; font-size: 0.9rem;">
+            📸 {{.ImageOriginalName}} (click to enlarge)
+        </p>
+    </div>
+{{end}}
+    
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(212, 175, 55, 0.3);">
+        <div class="like-buttons">
+            {{if .User}}
+                <form method="POST" action="/like-post" style="display: inline;">
+                    <input type="hidden" name="post_id" value="{{.ID}}">
+                    <input type="hidden" name="action" value="{{if .UserLiked}}remove{{else}}like{{end}}">
+                    <button type="submit" class="like-button {{if .UserLiked}}liked{{end}}">
+                        👍 {{.Likes}}
+                    </button>
+                </form>
+                <form method="POST" action="/like-post" style="display: inline;">
+                    <input type="hidden" name="post_id" value="{{.ID}}">
+                    <input type="hidden" name="action" value="{{if .UserDisliked}}remove{{else}}dislike{{end}}">
+                    <button type="submit" class="like-button {{if .UserDisliked}}disliked{{end}}">
+                        👎 {{.Dislikes}}
+                    </button>
+                </form>
+            {{else}}
+                <span style="color: #b8860b; font-size: 1.1rem;">👍 {{.Likes}} likes • 👎 {{.Dislikes}} dislikes</span>
+            {{end}}
+        </div>
+        
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <a href="/" class="btn btn-sm"> Back to Home</a>
+            {{if and .User (eq .User.ID .UserID)}}
+                <a href="/delete-post-confirm?id={{.ID}}" class="btn btn-danger btn-sm">🗑️ Delete Post</a>
+            {{end}}
+        </div>
+    </div>
+</div>
+
+<!-- Comments Section -->
+<div class="card">
+    <h3 style="color: #b8860b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+         Comments ({{len .Comments}})
+    </h3>
+    
+    <!-- Add Comment Form -->
+    {{if .User}}
+    <div style="background: rgba(212, 175, 55, 0.1); padding: 1.5rem; border-radius: 15px; margin-bottom: 2rem; border: 1px solid rgba(212, 175, 55, 0.2);">
+        <h4 style="color: #b8860b; margin-bottom: 1rem;"> Share your thoughts</h4>
+        <form method="POST" action="/create-comment">
+            <input type="hidden" name="post_id" value="{{.ID}}">
+            <div class="form-group">
+                <textarea name="content" rows="4" placeholder="Add your literary insight..." required 
+                         style="resize: vertical; min-height: 100px;"></textarea>
+            </div>
+            <button type="submit" class="btn btn-success"> Post Comment</button>
+        </form>
+    </div>
+    {{else}}
+    <div style="background: rgba(212, 175, 55, 0.1); padding: 1.5rem; border-radius: 15px; margin-bottom: 2rem; border: 1px solid rgba(212, 175, 55, 0.2); text-align: center;">
+        <p style="color: #b8860b; margin-bottom: 1rem;"> Join the discussion!</p>
+        <a href="/login" class="btn btn-primary"> Login for Comment</a>
+        <a href="/register" class="btn btn-success" style="margin-left: 1rem;"> Join the club</a>
+    </div>
+    {{end}}
+    
+    <!-- Comments List -->
+    {{if not .Comments}}
+    <div style="text-align: center; color: #b8860b; padding: 3rem; background: rgba(255,248,220,0.3); border-radius: 15px;">
+        <img src="/static/logo.png" alt="Literary Lions Logo" class="logo-img" />
+        <p style="font-size: 1.1rem; margin-bottom: 1rem;">No comments yet...</p>
+        <p>Be the first to share your thoughts on this post!</p>
+    </div>
+    {{else}}
+        {{range .Comments}}
+        <div style="border-left: 4px solid #d4af37; background: rgba(255,248,220,0.2); padding: 1.5rem; margin-bottom: 1.5rem; border-radius: 0 15px 15px 0; position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <span style="font-weight: 600; color: #b8860b;">
+                        💬 <a href="/members/{{.Username}}" style="color: #d4af37; text-decoration: none;">{{.Username}}</a>
+                    </span>
+                    <span style="color: #b8860b; font-size: 0.9rem;">{{.CreatedAt.Format "Jan 2, 2006 at 3:04 PM"}}</span>
+                </div>
+                
+                {{if and $.User (eq $.User.ID .UserID)}}
+                <a href="/delete-comment-confirm?id={{.ID}}" class="btn btn-danger btn-sm" style="font-size: 0.8rem; padding: 0.3rem 0.6rem;">🗑️</a>
+                {{end}}
+            </div>
+            
+            <div style="line-height: 1.7; color: #2c1810; white-space: pre-wrap; margin-bottom: 1rem;">{{.Content}}</div>
+            
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                {{if $.User}}
+                    <form method="POST" action="/like-comment" style="display: inline;">
+                        <input type="hidden" name="comment_id" value="{{.ID}}">
+                        <input type="hidden" name="action" value="{{if .UserLiked}}remove{{else}}like{{end}}">
+                        <button type="submit" class="like-button {{if .UserLiked}}liked{{end}}" style="font-size: 0.9rem;">
+                            👍 {{.Likes}}
+                        </button>
+                    </form>
+                    <form method="POST" action="/like-comment" style="display: inline;">
+                        <input type="hidden" name="comment_id" value="{{.ID}}">
+                        <input type="hidden" name="action" value="{{if .UserDisliked}}remove{{else}}dislike{{end}}">
+                        <button type="submit" class="like-button {{if .UserDisliked}}disliked{{end}}" style="font-size: 0.9rem;">
+                            👎 {{.Dislikes}}
+                        </button>
+                    </form>
+                {{else}}
+                    <span style="color: #b8860b; font-size: 0.9rem;">👍 {{.Likes}} • 👎 {{.Dislikes}}</span>
+                {{end}}
+            </div>
+        </div>
+        {{end}}
+    {{end}}
+</div>
+{{end}}
+
+{{define "search-content"}}
+<div class="card">
+    <h2 style="color: #b8860b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+        🔍 Search the Literary club
+    </h2>
+    
+    <form method="POST" action="/search">
+        <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+            <div style="flex: 2; min-width: 200px;">
+                <input type="text" name="query" placeholder="Search posts by title or content..." 
+                       value="{{.SearchQuery}}" required
+                       style="width: 100%; padding: 1rem; border: 2px solid rgba(212, 175, 55, 0.3); border-radius: 15px; font-size: 1rem;">
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <select name="category" style="width: 100%; padding: 1rem; border: 2px solid rgba(212, 175, 55, 0.3); border-radius: 15px; font-size: 1rem;">
+                    <option value="">All Categories</option>
+                    {{range .Categories}}
+                        <option value="{{.ID}}" {{if eq $.SelectedCategory (printf "%d" .ID)}}selected{{end}}>
+                            {{if eq .Name "General Discussion"}}{{else if eq .Name "Book Reviews"}}{{else if eq .Name "Author Spotlights"}}{{else if eq .Name "Reading Recommendations"}}{{else if eq .Name "Book Club Events"}}{{else if eq .Name "Genre Discussions"}}{{else}}{{end}} {{.Name}}
+                        </option>
+                    {{end}}
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary" style="height: 100%; padding: 1rem 1.5rem;">
+                    🔍 Search
+                </button>
+            </div>
+        </div>
+    </form>
+    
+    {{if .SearchQuery}}
+    <div style="background: rgba(212, 175, 55, 0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; border: 1px solid rgba(212, 175, 55, 0.2);">
+        <p style="color: #b8860b; margin: 0;">
+            Found <strong>{{.ResultsCount}}</strong> result{{if ne .ResultsCount 1}}s{{end}} for "<strong>{{.SearchQuery}}</strong>"
+            {{if .SelectedCategory}}
+                {{range .Categories}}
+                    {{if eq (printf "%d" .ID) $.SelectedCategory}}
+                        in category <strong>{{.Name}}</strong>
+                    {{end}}
+                {{end}}
+            {{end}}
+        </p>
+    </div>
+    {{end}}
+</div>
+
+<!-- Search Results -->
+{{if .SearchQuery}}
+    {{if not .Posts}}
+    <div class="card text-center" style="color: #b8860b;">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">🔍</div>
+        <h3 style="margin-bottom: 1rem;">No posts found</h3>
+        <p style="margin-bottom: 2rem;">
+            No posts match your search criteria. Try different keywords or browse all categories.
+        </p>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="/search" class="btn btn-primary">🔄 New Search</a>
+            <a href="/" class="btn btn-sm"> Browse All Posts</a>
+        </div>
+    </div>
+    {{else}}
+        {{range .Posts}}
+        <div class="card">
+            <h3 style="margin-bottom: 1rem; color: #000000;">
+                <a href="/post/{{.ID}}" style="color: #b8860b; text-decoration: none;">{{.Title}}</a>
+            </h3>
+            
+            <div class="post-meta">
+                <span> By <a href="/members/{{.Username}}" style="color: #d4af37; font-weight: 600; text-decoration: none;">{{.Username}}</a></span>
+                <span> {{.CreatedAt.Format "Jan 2, 2006 at 3:04 PM"}}</span>
+                {{if .Category}}
+                    <span class="category-tag">
+                        {{if eq .Category.Name "General Discussion"}}{{else if eq .Category.Name "Book Reviews"}}{{else if eq .Category.Name "Author Spotlights"}}{{else if eq .Category.Name "Reading Recommendations"}}{{else if eq .Category.Name "Book Club Events"}}{{else if eq .Category.Name "Genre Discussions"}}{{else}}{{end}} {{.Category.Name}}
+                    </span>
+                {{end}}
+            </div>
+            
+            <div class="post-content" style="margin-bottom: 1rem;">
+                {{if gt (len .Content) 250}}
+                    {{slice .Content 0 250}}...
+                    <a href="/post/{{.ID}}" style="color: #d4af37; font-weight: 600;">📖 Continue reading</a>
+                {{else}}
+                    {{.Content}}
+                {{end}}
+            </div>
+            
+            {{if .ImageFilename}}
+            <div style="margin: 1rem 0;">
+                <a href="/image-modal?image=uploads/{{.ImageFilename}}" style="display: inline-block;">
+                    <img src="/uploads/{{.ImageFilename}}" alt="{{.ImageOriginalName}}" 
+                         style="max-width: 200px; height: auto; border-radius: 10px; cursor: pointer;" 
+                         title="Click to view full size">
+                </a>
+            </div>
+            {{end}}
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(212, 175, 55, 0.3);">
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    {{if $.User}}
+                        <form method="POST" action="/like-post" style="display: inline;">
+                            <input type="hidden" name="post_id" value="{{.ID}}">
+                            <input type="hidden" name="action" value="{{if .UserLiked}}remove{{else}}like{{end}}">
+                            <button type="submit" class="like-button {{if .UserLiked}}liked{{end}}" style="font-size: 0.9rem;">
+                                👍 {{.Likes}}
+                            </button>
+                        </form>
+                        <form method="POST" action="/like-post" style="display: inline;">
+                            <input type="hidden" name="post_id" value="{{.ID}}">
+                            <input type="hidden" name="action" value="{{if .UserDisliked}}remove{{else}}dislike{{end}}">
+                            <button type="submit" class="like-button {{if .UserDisliked}}disliked{{end}}" style="font-size: 0.9rem;">
+                                👎 {{.Dislikes}}
+                            </button>
+                        </form>
+                    {{else}}
+                        <span style="color: #b8860b; font-size: 0.9rem;">👍 {{.Likes}} likes • 👎 {{.Dislikes}} dislikes</span>
+                    {{end}}
+                </div>
+                
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <a href="/post/{{.ID}}" class="btn btn-sm">💬 View Post</a>
+                    {{if and $.User (eq $.User.ID .UserID)}}
+                        <a href="/delete-post-confirm?id={{.ID}}" class="btn btn-danger btn-sm">🗑️ Delete</a>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+        {{end}}
+    {{end}}
+{{else}}
+<!-- Initial Search Page Content -->
+<div class="card text-center" style="color: #b8860b;">
+    <img src="/static/logo.png" alt="Literary Lions Logo" class="logo-img" />
+    <h3 style="margin-bottom: 1rem;">Discover Literary Treasures</h3>
+    <p style="font-size: 1.1rem; margin-bottom: 2rem; line-height: 1.6;">
+        Search through our collection of book discussions, reviews, recommendations, and literary insights.
+    </p>
+</div>
+{{end}}
+{{end}}
+
+{{define "create-post-content"}}
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    <h2 style="color: #b8860b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+         Share Your Literary Voice
+    </h2>
+    
+    {{if .Error}}
+    <div class="error">🚫 {{.Error}}</div>
+    {{end}}
+    
+    <form method="POST" action="/create-post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="title"> Post Title</label>
+            <input type="text" id="title" name="title" required 
+                   placeholder="What's your literary topic today?"
+                   style="font-size: 1.1rem; font-weight: 600;">
+        </div>
+        
+        <div class="form-group">
+            <label for="category"> Category</label>
+            <select id="category" name="category" required style="font-size: 1rem;">
+                <option value="">Select a category for your post</option>
+                {{range .Categories}}
+                    <option value="{{.ID}}">
+                        {{if eq .Name "General Discussion"}}{{else if eq .Name "Book Reviews"}}{{else if eq .Name "Author Spotlights"}}{{else if eq .Name "Reading Recommendations"}}{{else if eq .Name "Book Club Events"}}{{else if eq .Name "Genre Discussions"}}{{else}}{{end}} {{.Name}} - {{.Description}}
+                    </option>
+                {{end}}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="content">✍️ Your Literary Thoughts</label>
+            <textarea id="content" name="content" rows="12" required 
+                      placeholder="Share your thoughts, insights, reviews, or recommendations here..."
+                      style="resize: vertical; min-height: 200px; line-height: 1.6;"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="image">📸 Add an Image (Optional)</label>
+            <input type="file" id="image" name="image" accept="image/*"
+                   style="padding: 0.5rem; border: 2px dashed rgba(212, 175, 55, 0.3); background: rgba(255,248,220,0.2);">
+        </div>
+        
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <button type="submit" class="btn btn-success" style="font-size: 1.1rem; padding: 1rem 2rem;">
+                 Share with the club
+            </button>
+            <a href="/" class="btn btn-sm" style="padding: 1rem 1.5rem;">
+                ❌ Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{{end}}
+
+{{define "login-content"}}
+<div class="card" style="max-width: 500px; margin: 2rem auto;">
+    <h2 class="text-center mb-3"> Enter the Literary Den</h2>
+    <p class="text-center" style="color: #b8860b; margin-bottom: 2rem;">Welcome back, fellow book lion! Ready to post with literary discussions?</p>
+    
+    {{if .Error}}
+    <div class="error">🚫 {{.Error}}</div>
+    {{end}}
+    
+    <form method="POST" action="/login">
+        <div class="form-group">
+            <label for="email">📧 Email Address</label>
+            <input type="email" id="email" name="email" required placeholder="your.email@bookclub.com">
+        </div>
+        
+        <div class="form-group">
+            <label for="password">🔐 Password</label>
+            <input type="password" id="password" name="password" required placeholder="Enter your password">
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%;"> Log in</button>
+    </form>
+    
+    <div class="text-center mt-3">
+        <p style="color: #b8860b;">New to the club? <a href="/register" style="color: #463911; font-weight: 600;"> Join the Literary Lions</a></p>
+    </div>
+    
+    <div class="text-center mt-3" style="padding-top: 1rem; border-top: 1px solid rgba(212, 175, 55, 0.3);">
+        <small style="color: #b8860b; font-style: italic;">🏛️ Where every book lover finds their post</small>
+    </div>
+</div>
+{{end}}
+
+{{define "register-content"}}
+<div class="card" style="max-width: 500px; margin: 2rem auto;">
+    <h2 class="text-center mb-3"> Join the Literary club</h2>
+    <p class="text-center" style="color: #b8860b; margin-bottom: 2rem;">Ready to unleash your literary post? Join our majestic community of book lovers!</p>
+    
+    {{if .Error}}
+    <div class="error">🚫 {{.Error}}</div>
+    {{end}}
+    
+    <form method="POST" action="/register">
+        <div class="form-group">
+            <label for="email">📧 Email Address</label>
+            <input type="email" id="email" name="email" required placeholder="your.email@bookclub.com">
+            <small style="color: #b8860b;">🔒 This will be your unique identifier in the club (must be unique).</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="username"> Username</label>
+            <input type="text" id="username" name="username" required placeholder="BookLionHeart">
+            <small style="color: #b8860b;">👑 Choose your literary lion name (must be unique and will be displayed on posts).</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">🔐 Password</label>
+            <input type="password" id="password" name="password" required placeholder="Create a powerful post">
+            <small style="color: #b8860b;">🛡️ Choose a strong password.</small>
+        </div>
+        
+        <button type="submit" class="btn btn-success" style="width: 100%;"> Join the Literary club</button>
+    </form>
+    
+    <div class="text-center mt-3">
+        <p style="color: #b8860b;">Already part of the club? <a href="/login" style="color: #d4af37; font-weight: 600;"> Enter the club</a></p>
+    </div>
+    
+    <div class="text-center mt-3" style="padding-top: 1rem; border-top: 1px solid rgba(212, 175, 55, 0.3);">
+        <small style="color: #b8860b; font-style: italic;">🏛️ Where stories come alive and every reader finds their voice</small>
+    </div>
+</div>
+{{end}}
+
+{{define "profile-content"}}
+<div class="card">
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <img src="/static/logo.png" alt="Literary Lions Logo" class="logo-img" />
+        <h1 style="color: #b8860b; margin-bottom: 0.5rem;">{{.ProfileUser.Username}}'s Profile</h1>
+        <p style="color: #2c1810; font-style: italic;">Member since {{.ProfileUser.CreatedAt.Format "January 2006"}}</p>
+    </div>
+    
+    <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 2rem;">
+        <div style="flex: 1; min-width: 200px; background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(255, 215, 0, 0.1)); padding: 1.5rem; border-radius: 15px; border: 1px solid rgba(212, 175, 55, 0.2);">
+            <h3 style="color: #b8860b; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;"> club Statistics</h3>
+            <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #2c1810;"> Posts Created:</span>
+                    <span style="color: #b8860b; font-weight: 600;">{{.Stats.PostsCount}}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #2c1810;"> Comments Made:</span>
+                    <span style="color: #b8860b; font-weight: 600;">{{.Stats.CommentsCount}}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #2c1810;"> Posts Liked:</span>
+                    <span style="color: #b8860b; font-weight: 600;">{{.Stats.LikedPostsCount}}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #2c1810;"> Total Likes Received:</span>
+                    <span style="color: #b8860b; font-weight: 600;">{{.Stats.TotalLikesReceived}}</span>
+                </div>
+            </div>
+        </div>
+        
+        {{if and .User (eq .User.ID .ProfileUser.ID)}}
+        <div style="flex: 1; min-width: 200px; background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(255, 215, 0, 0.1)); padding: 1.5rem; border-radius: 15px; border: 1px solid rgba(212, 175, 55, 0.2);">
+            <h3 style="color: #b8860b; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">⚙️ Account Settings</h3>
+            <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                <div style="color: #2c1810;">
+                    <strong> Email:</strong><br>
+                    <span style="color: #b8860b;">{{.ProfileUser.Email}}</span>
+                </div>
+                <div style="color: #2c1810;">
+                    <strong> Username:</strong><br>
+                    <span style="color: #b8860b;">{{.ProfileUser.Username}}</span>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <a href="/logout" class="btn btn-danger btn-sm">🚪 Logout</a>
+                </div>
+            </div>
+        </div>
+        {{end}}
+    </div>
+</div>
+
+<div class="card">
+  <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
+    <a href="/members/{{.ProfileUser.Username}}?tab=posts" class="btn {{if eq .ActiveTab "posts"}}btn-primary{{else}}btn-sm{{end}}"> My Posts ({{.Stats.PostsCount}})</a>
+    <a href="/members/{{.ProfileUser.Username}}?tab=liked" class="btn {{if eq .ActiveTab "liked"}}btn-primary{{else}}btn-sm{{end}}"> Liked Posts ({{.Stats.LikedPostsCount}})</a>
+    <a href="/members/{{.ProfileUser.Username}}?tab=comments" class="btn {{if eq .ActiveTab "comments"}}btn-primary{{else}}btn-sm{{end}}"> My Comments ({{.Stats.CommentsCount}})</a>
+    <a href="/members/{{.ProfileUser.Username}}?tab=members" class="btn {{if eq .ActiveTab "members"}}btn-primary{{else}}btn-sm{{end}}"> All Members</a>
+</div>
+    
+    {{if eq .ActiveTab "posts"}}
+        <h3 style="color: #b8860b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">📝 Posts by {{.ProfileUser.Username}}</h3>
+        {{if not .Posts}}
+            <div class="text-center" style="color: #b8860b; padding: 3rem; background: rgba(255,248,220,0.3); border-radius: 15px;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📝</div>
+                <p style="font-size: 1.1rem; margin-bottom: 1rem;">No posts yet...</p>
+                {{if and .User (eq .User.ID .ProfileUser.ID)}}
+                    <p>Ready to share your first literary thoughts?</p>
+                    <a href="/create-post" class="btn btn-success" style="margin-top: 1rem;"> Create Your First Post</a>
+                {{else}}
+                    <p>This lion hasn't shared any posts yet.</p>
+                {{end}}
+            </div>
+        {{else}}
+            {{range .Posts}}
+            <div style="border-bottom: 1px solid rgba(212, 175, 55, 0.3); padding: 1.5rem 0;">
+                <h4 style="margin-bottom: 0.5rem; color: #b8860b;">
+                    <a href="/post/{{.ID}}" style="color: #b8860b; text-decoration: none;">{{.Title}}</a>
+                </h4>
+                <div style="color: #b8860b; font-size: 0.9rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                    <span> {{.CreatedAt.Format "Jan 2, 2006 at 3:04 PM"}}</span>
+                    {{if .Category}}
+                        <span style="background: linear-gradient(135deg, #d4af37, #ffd700); color: #2c1810; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
+                            {{if eq .Category.Name "General Discussion"}}{{else if eq .Category.Name "Book Reviews"}}{{else if eq .Category.Name "Author Spotlights"}}{{else if eq .Category.Name "Reading Recommendations"}}{{else if eq .Category.Name "Book Club Events"}}{{else if eq .Category.Name "Genre Discussions"}}{{else}}{{end}} {{.Category.Name}}
+                        </span>
+                    {{end}}
+                    <span>👍 {{.Likes}} likes</span>
+                    <span>👎 {{.Dislikes}} dislikes</span>
+                </div>
+                <div style="line-height: 1.6; color: #2c1810; background: rgba(255,248,220,0.2); padding: 1rem; border-radius: 10px; border-left: 3px solid #d4af37;">
+                    {{if gt (len .Content) 200}}
+                        {{slice .Content 0 200}}...
+                        <a href="/post/{{.ID}}" style="color: #d4af37; font-weight: 600;">Read more</a>
+                    {{else}}
+                        {{.Content}}
+                    {{end}}
+                </div>
+            </div>
+            {{end}}
+        {{end}}
+    {{end}}
+    
+    {{if eq .ActiveTab "liked"}}
+        <h3 style="color: #b8860b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">👍 Posts Liked by {{.ProfileUser.Username}}</h3>
+        {{if not .Posts}}
+            <div class="text-center" style="color: #b8860b; padding: 3rem; background: rgba(255,248,220,0.3); border-radius: 15px;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">👍</div>
+                <p style="font-size: 1.1rem; margin-bottom: 1rem;">No liked posts yet...</p>
+                <p>Start exploring the forum to find posts you love!</p>
+                <a href="/" class="btn btn-primary" style="margin-top: 1rem;"> Browse All Posts</a>
+            </div>
+        {{else}}
+            {{range .Posts}}
+            <div style="border-bottom: 1px solid rgba(212, 175, 55, 0.3); padding: 1.5rem 0;">
+                <h4 style="margin-bottom: 0.5rem; color: #b8860b;">
+                    <a href="/post/{{.ID}}" style="color: #b8860b; text-decoration: none;">{{.Title}}</a>
+                </h4>
+                <div style="color: #b8860b; font-size: 0.9rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                    <span> By <a href="/members/{{.Username}}" style="color: #d4af37; font-weight: 600; text-decoration: none;">{{.Username}}</a></span>
+                    <span> {{.CreatedAt.Format "Jan 2, 2006 at 3:04 PM"}}</span>
+                    {{if .Category}}
+                        <span style="background: linear-gradient(135deg, #d4af37, #ffd700); color: #2c1810; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
+                            {{if eq .Category.Name "General Discussion"}}{{else if eq .Category.Name "Book Reviews"}}{{else if eq .Category.Name "Author Spotlights"}}{{else if eq .Category.Name "Reading Recommendations"}}{{else if eq .Category.Name "Book Club Events"}}{{else if eq .Category.Name "Genre Discussions"}}{{else}}{{end}} {{.Category.Name}}
+                        </span>
+                    {{end}}
+                    <span>👍 {{.Likes}} likes</span>
+                    <span>👎 {{.Dislikes}} dislikes</span>
+                </div>
+                <div style="line-height: 1.6; color: #2c1810; background: rgba(255,248,220,0.2); padding: 1rem; border-radius: 10px; border-left: 3px solid #d4af37;">
+                    {{if gt (len .Content) 200}}
+                        {{slice .Content 0 200}}...
+                        <a href="/post/{{.ID}}" style="color: #d4af37; font-weight: 600;">Read more</a>
+                    {{else}}
+                        {{.Content}}
+                    {{end}}
+                </div>
+            </div>
+            {{end}}
+        {{end}}
+    {{end}}
+    
+    {{if eq .ActiveTab "comments"}}
+        <h3 style="color: #b8860b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">💬 Comments by {{.ProfileUser.Username}}</h3>
+        {{if not .Comments}}
+            <div class="text-center" style="color: #b8860b; padding: 3rem; background: rgba(255,248,220,0.3); border-radius: 15px;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">💬</div>
+                <p style="font-size: 1.1rem; margin-bottom: 1rem;">No comments yet...</p>
+                <p>Start participating in discussions to see your comments here!</p>
+                <a href="/" class="btn btn-primary" style="margin-top: 1rem;"> Browse Posts</a>
+            </div>
+        {{else}}
+            {{range .Comments}}
+            <div style="border-bottom: 1px solid rgba(212, 175, 55, 0.3); padding: 1.5rem 0;">
+                <div style="color: #b8860b; font-size: 0.9rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem;">
+                    <span> {{.CreatedAt.Format "Jan 2, 2006 at 3:04 PM"}}</span>
+                    <span>👍 {{.Likes}} likes</span>
+                    <span>👎 {{.Dislikes}} dislikes</span>
+                    <span> On: <a href="/post/{{.PostID}}" style="color: #d4af37; font-weight: 600;">{{.PostTitle}}</a></span>
+                </div>
+                <div style="line-height: 1.7; white-space: pre-wrap; background: rgba(255,248,220,0.2); padding: 1.2rem; border-radius: 12px; border-left: 3px solid #d4af37; color: #2c1810;">{{.Content}}</div>
+            </div>
+            {{end}}
+        {{end}}
+    {{end}}
+    
+    {{if eq .ActiveTab "members"}}
+        <h3 style="color: #b8860b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">👥 Literary Lions club</h3>
+        
+        <!-- club Statistics -->
+        <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 2rem; justify-content: center;">
+            <div style="background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(255, 215, 0, 0.1)); padding: 1.5rem; border-radius: 15px; border: 1px solid rgba(212, 175, 55, 0.2); text-align: center; min-width: 150px;">
+                <img src="/static/logo.png" alt="Literary Lions Logo" class="logo-img" />
+                <div style="font-size: 1.5rem; font-weight: bold; color: #b8860b;">{{.TotalUsers}}</div>
+                <div style="color: #2c1810; font-size: 0.9rem;">club Members</div>
+            </div>
+            <div style="background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(255, 215, 0, 0.1)); padding: 1.5rem; border-radius: 15px; border: 1px solid rgba(212, 175, 55, 0.2); text-align: center; min-width: 150px;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📝</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #b8860b;">{{.TotalPosts}}</div>
+                <div style="color: #2c1810; font-size: 0.9rem;">Literary posts</div>
+            </div>
+            <div style="background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(255, 215, 0, 0.1)); padding: 1.5rem; border-radius: 15px; border: 1px solid rgba(212, 175, 55, 0.2); text-align: center; min-width: 150px;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">💬</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #b8860b;">{{.TotalComments}}</div>
+                <div style="color: #2c1810; font-size: 0.9rem;">Discussions</div>
+            </div>
+        </div>
+        
+        {{if not .AllUsers}}
+            <div style="text-align: center; color: #b8860b; padding: 3rem; background: rgba(255,248,220,0.3); border-radius: 15px;">
+                <img src="/static/logo.png" alt="Literary Lions Logo" class="logo-img" />
+                <p style="font-size: 1.1rem; margin-bottom: 1rem;">The club is just beginning...</p>
+                <p>Be the first to join our literary community!</p>
+            </div>
+        {{else}}
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+                {{range .AllUsers}}
+                <div style="background: rgba(255,248,220,0.3); padding: 1.5rem; border-radius: 15px; border-left: 4px solid #d4af37; transition: all 0.3s ease; position: relative;">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <img src="/static/logo.png" alt="Literary Lions Logo" class="logo-img" />
+                        <div>
+                            <h4 style="color: #b8860b; margin-bottom: 0.3rem;">
+                                <a href="/members/{{.Username}}" style="color: #b8860b; text-decoration: none; font-weight: 600;">{{.Username}}</a>
+                            </h4>
+                            <p style="color: #2c1810; font-size: 0.9rem; margin: 0;">Member since {{.CreatedAt.Format "Jan 2006"}}</p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #b8860b;">
+                        <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                            <span> {{.PostsCount}} posts</span>
+                            <span> {{.CommentsCount}} comments</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="background: linear-gradient(135deg, #d4af37, #ffd700); color: #2c1810; padding: 0.4rem 0.8rem; border-radius: 15px; font-weight: 600; font-size: 0.8rem;">
+                                 {{.TotalLikesReceived}} likes
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 1rem;">
+                        <a href="/members/{{.Username}}" class="btn btn-sm" style="width: 100%; text-align: center; padding: 0.6rem;">
+                             View Profile
+                        </a>
+                    </div>
+                </div>
+                {{end}}
+            </div>
+        {{end}}
+    {{end}}
+</div>
+{{end}}
+
+{{define "members-content"}}
+<div class="card">
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <img src="/static/logo.png" alt="Literary Lions Logo" class="logo-img" />
+        <h1 style="color: #b8860b; margin-bottom: 0.5rem;">Literary Lions club</h1>
+        <p style="color: #2c1810; font-style: italic; font-size: 1.1rem;">Meet our majestic community of book lovers</p>
+    </div>
+    
+    <!-- club Statistics -->
+    <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 2rem; justify-content: center;">
+        <div style="background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(255, 215, 0, 0.1)); padding: 1.5rem; border-radius: 15px; border: 1px solid rgba(212, 175, 55, 0.2); text-align: center; min-width: 150px;">
+            <img src="/static/logo.png" alt="Literary Lions Logo" class="logo-img" />
+            <div style="font-size: 1.5rem; font-weight: bold; color: #b8860b;">{{.TotalUsers}}</div>
+            <div style="color: #2c1810; font-size: 0.9rem;">club Members</div>
+        </div>
+        <div style="background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(255, 215, 0, 0.1)); padding: 1.5rem; border-radius: 15px; border: 1px solid rgba(212, 175, 55, 0.2); text-align: center; min-width: 150px;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">📝</div>
+            <div style="font-size: 1.5rem; font-weight: bold; color: #b8860b;">{{.TotalPosts}}</div>
+            <div style="color: #2c1810; font-size: 0.9rem;">Literary posts</div>
+        </div>
+        <div style="background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(255, 215, 0, 0.1)); padding: 1.5rem; border-radius: 15px; border: 1px solid rgba(212, 175, 55, 0.2); text-align: center; min-width: 150px;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">💬</div>
+            <div style="font-size: 1.5rem; font-weight: bold; color: #b8860b;">{{.TotalComments}}</div>
+            <div style="color: #2c1810; font-size: 0.9rem;">Discussions</div>
+        </div>
+    </div>
+</div>
+
+<!-- Members List -->
+<div class="card">
+    <h3 style="color: #b8860b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+        👥 Our Literary club Members
+    </h3>
+    
+    {{if not .Users}}
+    <div style="text-align: center; color: #b8860b; padding: 3rem; background: rgba(255,248,220,0.3); border-radius: 15px;">
+        <img src="/static/logo.png" alt="Literary Lions Logo" class="logo-img" />
+        <p style="font-size: 1.1rem; margin-bottom: 1rem;">The club is just beginning...</p>
+        <p>Be the first to join our literary community!</p>
+        {{if not .User}}
+        <div style="margin-top: 1.5rem;">
+            <a href="/register" class="btn btn-success"> Join the club</a>
+        </div>
+        {{end}}
+    </div>
+    {{else}}
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+            {{range .Users}}
+            <div style="background: rgba(255,248,220,0.3); padding: 1.5rem; border-radius: 15px; border-left: 4px solid #d4af37; transition: all 0.3s ease; position: relative;">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <img src="/static/logo.png" alt="Literary Lions Logo" class="logo-img" />
+                    <div>
+                        <h4 style="color: #b8860b; margin-bottom: 0.3rem;">
+                            <a href="/members/{{.Username}}" style="color: #b8860b; text-decoration: none; font-weight: 600;">{{.Username}}</a>
+                        </h4>
+                        <p style="color: #2c1810; font-size: 0.9rem; margin: 0;">Member since {{.CreatedAt.Format "Jan 2006"}}</p>
+                    </div>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #b8860b;">
+                    <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                        <span> {{.PostsCount}} posts</span>
+                        <span> {{.CommentsCount}} comments</span>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="background: linear-gradient(135deg, #d4af37, #ffd700); color: #2c1810; padding: 0.4rem 0.8rem; border-radius: 15px; font-weight: 600; font-size: 0.8rem;">
+                             {{.TotalLikesReceived}} likes
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 1rem;">
+                    <a href="/members/{{.Username}}" class="btn btn-sm" style="width: 100%; text-align: center; padding: 0.6rem;">
+                         View Profile
+                    </a>
+                </div>
+            </div>
+            {{end}}
+        </div>
+    {{end}}
+</div>
+
+{{if not .User}}
+<div class="card" style="text-align: center; background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(255, 215, 0, 0.1)); border: 2px solid rgba(212, 175, 55, 0.2);">
+    <img src="/static/logo.png" alt="Literary Lions Logo" class="logo-img" />
+    <h3 style="color: #b8860b; margin-bottom: 1rem;">Ready to Join the club?</h3>
+    <p style="color: #2c1810; margin-bottom: 1.5rem; font-size: 1.1rem; line-height: 1.6;">
+        Become part of our literary community! Share your thoughts, discover new books, 
+        and connect with fellow book lovers who share your passion for great stories.
+    </p>
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1rem;">
+        <a href="/register" class="btn btn-success"> Join the club</a>
+        <a href="/login" class="btn btn-primary"> Enter the Den</a>
+    </div>
+    <div style="color: #b8860b; font-style: italic; border-top: 1px solid rgba(212, 175, 55, 0.3); padding-top: 1rem; margin-top: 1rem;">
+         "A reader lives a thousand lives before he dies" - George R.R. Martin
+    </div>
+</div>
+{{end}}
+{{end}}
+
+{{define "image-modal-content"}}
+<div style="position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 90vw; max-height: 90vh; text-align: center;">
+        <img src="/{{.ImagePath}}" style="max-width: 100%; max-height: 100%; border-radius: 10px;">
+        <div style="color: white; text-align: center; margin-top: 1rem; font-size: 1.1rem;">
+            <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;"></p>
+        </div>
+        <div style="margin-top: 2rem;">
+            <a href="/" class="btn btn-primary" style="background: #007bff; color: white; padding: 0.8rem 1.5rem; border-radius: 10px; text-decoration: none; font-weight: 600;">
+                ✕ Close
+            </a>
+        </div>
+    </div>
+</div>
+{{end}}
+
+{{define "delete-confirm-content"}}
+<div class="card" style="max-width: 600px; margin: 3rem auto; text-align: center;">
+    <div style="font-size: 4rem; margin-bottom: 1rem; color: #dc3545;">⚠️</div>
+    <h2 style="color: #dc3545; margin-bottom: 1.5rem;">Confirm Deletion</h2>
+    
+    <div style="background: rgba(220, 53, 69, 0.1); padding: 2rem; border-radius: 15px; border: 2px solid rgba(220, 53, 69, 0.3); margin-bottom: 2rem;">
+        <p style="color: #2c1810; font-size: 1.1rem; margin-bottom: 1rem;">
+            Are you sure you want to delete this {{.Type}}?
+        </p>
+        {{if eq .Type "post"}}
+            <p style="color: #b8860b; font-weight: 600; font-style: italic;">"{{.Title}}"</p>
+        {{end}}
+        <p style="color: #dc3545; font-weight: 600; margin-top: 1rem;">
+            ⚠️ This action cannot be undone!
+        </p>
+    </div>
+    
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        <form method="POST" action="{{if eq .Type "post"}}/delete-post{{else}}/delete-comment{{end}}" style="display: inline;">
+            <input type="hidden" name="{{if eq .Type "post"}}post_id{{else}}comment_id{{end}}" value="{{.ID}}">
+            <button type="submit" class="btn btn-danger" style="background: #dc3545; color: white; padding: 0.8rem 1.5rem; border-radius: 10px; border: none; font-weight: 600; cursor: pointer;">
+                🗑️ Yes, Delete {{if eq .Type "post"}}Post{{else}}Comment{{end}}
+            </button>
+        </form>
+        
+        <a href="/" class="btn" style="background: #6c757d; color: white; padding: 0.8rem 1.5rem; border-radius: 10px; text-decoration: none; font-weight: 600;">
+            ❌ Cancel
+        </a>
+    </div>
+    
+    <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid rgba(212, 175, 55, 0.3);">
+        <small style="color: #b8860b; font-style: italic;">
+            💡 Think twice before deleting - your contributions are valuable to the club!
+        </small>
+    </div>
+</div>
+{{end}}

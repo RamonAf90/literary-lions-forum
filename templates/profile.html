@@ -1,0 +1,165 @@
+{{define "profile-content"}}
+<div class="card">
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <img src="/static/logo.png" alt="Literary Lions Logo" class="logo-img" />
+        <h1 style="color: #b8860b; margin-bottom: 0.5rem;">{{.ProfileUser.Username}}'s Profile</h1>
+        <p style="color: #2c1810; font-style: italic;">Member since {{.ProfileUser.CreatedAt.Format "January 2006"}}</p>
+    </div>
+    
+    <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 2rem;">
+        <div style="flex: 1; min-width: 200px; background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(255, 215, 0, 0.1)); padding: 1.5rem; border-radius: 15px; border: 1px solid rgba(212, 175, 55, 0.2);">
+            <h3 style="color: #b8860b; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;"> club Statistics</h3>
+            <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #2c1810;"> Posts Created:</span>
+                    <span style="color: #b8860b; font-weight: 600;">{{.Stats.PostsCount}}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #2c1810;"> Comments Made:</span>
+                    <span style="color: #b8860b; font-weight: 600;">{{.Stats.CommentsCount}}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #2c1810;"> Posts Liked:</span>
+                    <span style="color: #b8860b; font-weight: 600;">{{.Stats.LikedPostsCount}}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #2c1810;"> Total Likes Received:</span>
+                    <span style="color: #b8860b; font-weight: 600;">{{.Stats.TotalLikesReceived}}</span>
+                </div>
+            </div>
+        </div>
+        
+        {{if and .User (eq .User.ID .ProfileUser.ID)}}
+        <div style="flex: 1; min-width: 200px; background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(255, 215, 0, 0.1)); padding: 1.5rem; border-radius: 15px; border: 1px solid rgba(212, 175, 55, 0.2);">
+            <h3 style="color: #b8860b; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">⚙️ Account Settings</h3>
+            <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                <div style="color: #2c1810;">
+                    <strong> Email:</strong><br>
+                    <span style="color: #b8860b;">{{.ProfileUser.Email}}</span>
+                </div>
+                <div style="color: #2c1810;">
+                    <strong> Username:</strong><br>
+                    <span style="color: #b8860b;">{{.ProfileUser.Username}}</span>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <a href="/logout" class="btn btn-danger btn-sm">🚪 Logout</a>
+                </div>
+            </div>
+        </div>
+        {{end}}
+    </div>
+</div>
+
+<div class="card">
+    <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
+        <a href="/members/{{.ProfileUser.Username}}?tab=posts" class="btn {{if eq .ActiveTab "posts"}}btn-primary{{else}}btn-sm{{end}}">📝 My Posts ({{.Stats.PostsCount}})</a>
+        <a href="/members/{{.ProfileUser.Username}}?tab=liked" class="btn {{if eq .ActiveTab "liked"}}btn-primary{{else}}btn-sm{{end}}">👍 Liked Posts ({{.Stats.LikedPostsCount}})</a>
+        <a href="/members/{{.ProfileUser.Username}}?tab=comments" class="btn {{if eq .ActiveTab "comments"}}btn-primary{{else}}btn-sm{{end}}">💬 My Comments ({{.Stats.CommentsCount}})</a>
+    </div>
+    
+    {{if eq .ActiveTab "posts"}}
+        <h3 style="color: #b8860b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">📝 Posts by {{.ProfileUser.Username}}</h3>
+        {{if not .Posts}}
+            <div class="text-center" style="color: #b8860b; padding: 3rem; background: rgba(255,248,220,0.3); border-radius: 15px;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📝</div>
+                <p style="font-size: 1.1rem; margin-bottom: 1rem;">No posts yet...</p>
+                {{if and .User (eq .User.ID .ProfileUser.ID)}}
+                    <p>Ready to share your first literary thoughts?</p>
+                    <a href="/create-post" class="btn btn-success" style="margin-top: 1rem;"> Create Your First Post</a>
+                {{else}}
+                    <p>This lion hasn't shared any posts yet.</p>
+                {{end}}
+            </div>
+        {{else}}
+            {{range .Posts}}
+            <div style="border-bottom: 1px solid rgba(212, 175, 55, 0.3); padding: 1.5rem 0;">
+                <h4 style="margin-bottom: 0.5rem; color: #b8860b;">
+                    <a href="/post/{{.ID}}" style="color: #b8860b; text-decoration: none;">{{.Title}}</a>
+                </h4>
+                <div style="color: #b8860b; font-size: 0.9rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                    <span>⏰ {{.CreatedAt.Format "Jan 2, 2006 at 3:04 PM"}}</span>
+                    {{if .Category}}
+                        <span style="background: linear-gradient(135deg, #d4af37, #ffd700); color: #2c1810; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
+                            {{if eq .Category.Name "General Discussion"}}{{else if eq .Category.Name "Book Reviews"}}{{else if eq .Category.Name "Author Spotlights"}}{{else if eq .Category.Name "Reading Recommendations"}}{{else if eq .Category.Name "Book Club Events"}}{{else if eq .Category.Name "Genre Discussions"}}{{else}}{{end}} {{.Category.Name}}
+                        </span>
+                    {{end}}
+                    <span>👍 {{.Likes}} likes</span>
+                    <span>👎 {{.Dislikes}} dislikes</span>
+                </div>
+                <div style="line-height: 1.6; color: #2c1810; background: rgba(255,248,220,0.2); padding: 1rem; border-radius: 10px; border-left: 3px solid #d4af37;">
+                    {{if gt (len .Content) 200}}
+                        {{slice .Content 0 200}}...
+                        <a href="/post/{{.ID}}" style="color: #d4af37; font-weight: 600;">Read more</a>
+                    {{else}}
+                        {{.Content}}
+                    {{end}}
+                </div>
+            </div>
+            {{end}}
+        {{end}}
+    {{end}}
+    
+    {{if eq .ActiveTab "liked"}}
+        <h3 style="color: #b8860b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">👍 Posts Liked by {{.ProfileUser.Username}}</h3>
+        {{if not .Posts}}
+            <div class="text-center" style="color: #b8860b; padding: 3rem; background: rgba(255,248,220,0.3); border-radius: 15px;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">👍</div>
+                <p style="font-size: 1.1rem; margin-bottom: 1rem;">No liked posts yet...</p>
+                <p>Start exploring the forum to find posts you love!</p>
+                <a href="/" class="btn btn-primary" style="margin-top: 1rem;"> Browse All Posts</a>
+            </div>
+        {{else}}
+            {{range .Posts}}
+            <div style="border-bottom: 1px solid rgba(212, 175, 55, 0.3); padding: 1.5rem 0;">
+                <h4 style="margin-bottom: 0.5rem; color: #b8860b;">
+                    <a href="/post/{{.ID}}" style="color: #b8860b; text-decoration: none;">{{.Title}}</a>
+                </h4>
+                <div style="color: #b8860b; font-size: 0.9rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                    <span>👍 By <a href="/members/{{.Username}}" style="color: #d4af37; font-weight: 600; text-decoration: none;">{{.Username}}</a></span>
+                    <span>⏰ {{.CreatedAt.Format "Jan 2, 2006 at 3:04 PM"}}</span>
+                    {{if .Category}}
+                        <span style="background: linear-gradient(135deg, #d4af37, #ffd700); color: #2c1810; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
+                            {{if eq .Category.Name "General Discussion"}}{{else if eq .Category.Name "Book Reviews"}}{{else if eq .Category.Name "Author Spotlights"}}{{else if eq .Category.Name "Reading Recommendations"}}{{else if eq .Category.Name "Book Club Events"}}{{else if eq .Category.Name "Genre Discussions"}}{{else}}{{end}} {{.Category.Name}}
+                        </span>
+                    {{end}}
+                    <span>👍 {{.Likes}} likes</span>
+                    <span>👎 {{.Dislikes}} dislikes</span>
+                </div>
+                <div style="line-height: 1.6; color: #2c1810; background: rgba(255,248,220,0.2); padding: 1rem; border-radius: 10px; border-left: 3px solid #d4af37;">
+                    {{if gt (len .Content) 200}}
+                        {{slice .Content 0 200}}...
+                        <a href="/post/{{.ID}}" style="color: #d4af37; font-weight: 600;">Read more</a>
+                    {{else}}
+                        {{.Content}}
+                    {{end}}
+                </div>
+            </div>
+            {{end}}
+        {{end}}
+    {{end}}
+    
+    {{if eq .ActiveTab "comments"}}
+        <h3 style="color: #b8860b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">💬 Comments by {{.ProfileUser.Username}}</h3>
+        {{if not .Comments}}
+            <div class="text-center" style="color: #b8860b; padding: 3rem; background: rgba(255,248,220,0.3); border-radius: 15px;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">💬</div>
+                <p style="font-size: 1.1rem; margin-bottom: 1rem;">No comments yet...</p>
+                <p>Start participating in discussions to see your comments here!</p>
+                <a href="/" class="btn btn-primary" style="margin-top: 1rem;"> Browse Posts</a>
+            </div>
+        {{else}}
+            {{range .Comments}}
+            <div style="border-bottom: 1px solid rgba(212, 175, 55, 0.3); padding: 1.5rem 0;">
+                <div style="color: #b8860b; font-size: 0.9rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem;">
+                    <span>⏰ {{.CreatedAt.Format "Jan 2, 2006 at 3:04 PM"}}</span>
+                    <span>👍 {{.Likes}} likes</span>
+                    <span>👎 {{.Dislikes}} dislikes</span>
+                    <span>📝 On: <a href="/post/{{.PostID}}" style="color: #d4af37; font-weight: 600;">{{.PostTitle}}</a></span>
+                </div>
+                <div style="line-height: 1.7; white-space: pre-wrap; background: rgba(255,248,220,0.2); padding: 1.2rem; border-radius: 12px; border-left: 3px solid #d4af37; color: #2c1810;">{{.Content}}</div>
+            </div>
+            {{end}}
+        {{end}}
+    {{end}}
+</div>
+{{end}}
